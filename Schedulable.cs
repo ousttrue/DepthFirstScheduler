@@ -95,6 +95,25 @@ namespace DepthFirstScheduler
             return Func.Execute();
         }
 
+        /// <summary>
+        /// スケジュールされたタスクをすべて即時に実行する
+        /// </summary>
+        public void ExecuteAll()
+        {
+            foreach (var x in this.GetRoot().Traverse())
+            {
+                while (true)
+                {
+                    var status = x.Execute();
+                    if (status != ExecutionStatus.Continue)
+                    {
+                        break;
+                    }
+                    // Coroutineタスクが継続している
+                }
+            }
+        }
+
         public Schedulable<Unit> AddTask(IScheduler scheduler, Action pred)
         {
             return AddTask(scheduler, () => { pred(); return Unit.Default; });
