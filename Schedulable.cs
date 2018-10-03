@@ -32,6 +32,13 @@ namespace DepthFirstScheduler
         }
     }
 
+    public class NoParentException: Exception
+    {              
+        public NoParentException():base("No parent task can't ContinueWith or OnExecute. First AddTask")
+        {
+        }
+    }
+
     public class Schedulable<T> : ISchedulable
     {
         List<ISchedulable> m_children = new List<ISchedulable>();
@@ -141,6 +148,11 @@ namespace DepthFirstScheduler
 
         public Schedulable<U> ContinueWith<U>(IScheduler scheduler, Func<T, U> pred)
         {
+            if (Parent == null)
+            {
+                throw new NoParentException();
+            }
+
             Func<T> getResult = null;
             if (Func != null)
             {
@@ -154,6 +166,11 @@ namespace DepthFirstScheduler
 
         public Schedulable<T> ContinueWithCoroutine(IScheduler scheduler, Func<IEnumerator> starter)
         {
+            if (Parent == null)
+            {
+                throw new NoParentException();
+            }
+
             var func = CoroutineFunctor.Create(() => default(T), _ => starter());
             var schedulable = new Schedulable<T>(scheduler, func);
             Parent.AddChild(schedulable);
@@ -162,6 +179,11 @@ namespace DepthFirstScheduler
 
         public Schedulable<Unit> OnExecute(IScheduler scheduler, Action<Schedulable<Unit>> pred)
         {
+            if (Parent == null)
+            {
+                throw new NoParentException();
+            }
+
             Func<T> getResult = null;
             if (Func != null)
             {
@@ -173,14 +195,6 @@ namespace DepthFirstScheduler
             Parent.AddChild(schedulable);
             return schedulable;
         }
-
-        /*
-        public ISchedulable<U> ContinueWithNested<U>(Func<T, ISchedulable<U>> starter, IScheduler scheduler)
-        {
-            var func = SchedulableFunctor.Create(() => starter(Func.GetResult()));
-            return new Schedulable<U>(scheduler, func, this);
-        }
-        */
     }
 
     public static class Schedulable
@@ -217,46 +231,5 @@ namespace DepthFirstScheduler
         }
 #endif
 
-        /*
-        public static ISchedulable<Unit> Sequencial<T>(IEnumerable<ISchedulable<T>> schedulables, Action<T> mergePred)
-        {
-            var it = schedulables.GetEnumerator();
-            ISchedulable<Unit> last = Schedulable.Start(null, () => Unit.Default);
-            while (it.MoveNext())
-            {
-                var current = it.Current;
-                var merger = current.ContinueWith(result =>
-                {
-                    mergePred(result);
-                    return Unit.Default;
-                });
-
-                if (last != null)
-                {
-                    // 連結
-                    current.EnumParents().Last().Parent = last;
-                }
-
-                last = merger;
-            }
-
-            return last;
-        }
-        */
-
-        /*
-        public static ISchedulable<S> MergeCollection<S, T, U>(this ISchedulable<S> schedulable,
-            Func<S, IEnumerable<T>> extractor,
-            Func<S, T, U> pred,
-            Action<S, U> merger,
-            IScheduler scheduler = null)
-        {
-            return schedulable.ContinueWithNested(x =>
-            {
-                var schedulables = extractor(x).Select(y => Schedulable.Start(scheduler, () => pred(x, y)));
-                return Sequencial(schedulables, z => merger(x, z)).ContinueWith(_ => x);
-            }, scheduler);
-        }
-        */
     }
 }
