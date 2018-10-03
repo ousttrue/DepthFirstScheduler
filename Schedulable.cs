@@ -201,7 +201,9 @@ namespace DepthFirstScheduler
     {
         public static Schedulable<Unit> Create()
         {
-            return new Schedulable<Unit>();
+            return new Schedulable<Unit>().AddTask(Scheduler.CurrentThread, () =>
+            {
+            });
         }
     }
 
