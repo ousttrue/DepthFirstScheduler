@@ -1,4 +1,6 @@
-> I decided to integrate this library with UniVRM for maintenance reason (submodule burdensome). Continue updating within [UniVRM](git@github.com:dwango/UniVRM.git)
+> I decided to integrate this library with UniVRM for maintenance reason (submodule burdensome). Continue updating within UniVRM
+
+* [UniVRM](https://github.com/dwango/UniVRM)
 
 # DepthFirstScheduler(深さ優先スケジューラー)
 Asynchronous task scheduler for Unity-5.6 or later
